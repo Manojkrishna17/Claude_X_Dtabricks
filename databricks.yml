@@ -1,0 +1,16 @@
+bundle:
+  name: bookings_enriched_pipeline
+
+include:
+  - resources/*.yml
+
+variables:
+  warehouse_id:
+    default: 146b7293cc8c3110
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-49ba6fc8-9ca5.cloud.databricks.com

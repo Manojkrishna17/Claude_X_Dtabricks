@@ -1,0 +1,48 @@
+resources:
+  jobs:
+    bookings_enriched_job:
+      name: bookings_enriched_job
+      email_notifications:
+        on_failure:
+          - immanojmanu1996@gmail.com
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+      tasks:
+        - task_key: incremental_load_bookings_enriched
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/incremental_load_bookings_enriched.py
+        - task_key: check_bookings_enriched_quality
+          depends_on:
+            - task_key: incremental_load_bookings_enriched
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/check_bookings_enriched_quality.sql
+        - task_key: create_bookings_per_city_view
+          depends_on:
+            - task_key: check_bookings_enriched_quality
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/create_bookings_per_city_view.sql
+        - task_key: create_revenue_per_city_view
+          depends_on:
+            - task_key: check_bookings_enriched_quality
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/create_revenue_per_city_view.sql
+        - task_key: create_bookings_per_month_view
+          depends_on:
+            - task_key: check_bookings_enriched_quality
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/create_bookings_per_month_view.sql
