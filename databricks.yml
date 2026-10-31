@@ -5,12 +5,41 @@ include:
   - resources/*.yml
 
 variables:
+  catalog:
+    default: claudecatalog
+  raw_schema:
+    default: raw
+  enr_schema:
+    default: enr
+  cur_schema:
+    default: cur
   warehouse_id:
     default: 146b7293cc8c3110
 
 targets:
+  # dev writes to its own schemas so it never touches prod tables; no schedule, no alerts.
   dev:
     mode: development
     default: true
     workspace:
       host: https://dbc-49ba6fc8-9ca5.cloud.databricks.com
+    variables:
+      enr_schema: dev_enr
+      cur_schema: dev_cur
+
+  # prod uses the real enr/cur schemas, runs daily and emails on failure.
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-49ba6fc8-9ca5.cloud.databricks.com
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    resources:
+      jobs:
+        bookings_enriched_job:
+          email_notifications:
+            on_failure:
+              - immanojmanu1996@gmail.com
+          schedule:
+            quartz_cron_expression: "0 0 6 * * ?"
+            timezone_id: UTC
+            pause_status: UNPAUSED

@@ -1,0 +1,584 @@
+{
+  "datasets": [
+    {
+      "name": "ds_monthly",
+      "displayName": "Bookings per month",
+      "queryLines": [
+        "SELECT booking_month, booking_count, total_revenue ",
+        "FROM bookings_per_month"
+      ],
+      "columns": [
+        {
+          "displayName": "Total Bookings",
+          "description": "Number of bookings",
+          "expression": "SUM(`booking_count`)"
+        },
+        {
+          "displayName": "Total Revenue",
+          "description": "Sum of booking amounts",
+          "expression": "SUM(`total_revenue`)"
+        },
+        {
+          "displayName": "Avg Booking Value",
+          "description": "Revenue divided by bookings",
+          "expression": "SUM(`total_revenue`) / SUM(`booking_count`)"
+        }
+      ]
+    },
+    {
+      "name": "ds_city_revenue",
+      "displayName": "Top cities by revenue",
+      "queryLines": [
+        "SELECT city, total_revenue ",
+        "FROM revenue_per_city ",
+        "ORDER BY total_revenue DESC ",
+        "LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_city_bookings",
+      "displayName": "Top cities by bookings",
+      "queryLines": [
+        "SELECT city, booking_count ",
+        "FROM bookings_per_city ",
+        "ORDER BY booking_count DESC, city ",
+        "LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_city_all",
+      "displayName": "All cities",
+      "queryLines": [
+        "SELECT city, total_revenue, booking_count, ROUND(total_revenue / booking_count, 2) AS avg_booking_value ",
+        "FROM revenue_per_city ",
+        "ORDER BY total_revenue DESC"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Bookings Overview\n",
+                "\n",
+                "Curated gold-layer views: bookings and revenue by month and by airport city. Use the filters page to narrow the date range of the KPIs and monthly trend."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-bookings",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_monthly",
+                  "fields": [
+                    {
+                      "name": "measure(Total Bookings)",
+                      "expression": "MEASURE(`Total Bookings`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Bookings)",
+                  "displayName": "Total Bookings"
+                }
+              },
+              "frame": {
+                "title": "Total Bookings",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_monthly",
+                  "fields": [
+                    {
+                      "name": "measure(Total Revenue)",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Revenue)",
+                  "displayName": "Total Revenue",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    },
+                    "abbreviation": "compact"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Total Revenue",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-avg-booking-value",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_monthly",
+                  "fields": [
+                    {
+                      "name": "measure(Avg Booking Value)",
+                      "expression": "MEASURE(`Avg Booking Value`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Avg Booking Value)",
+                  "displayName": "Avg Booking Value",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "title": "Avg Booking Value",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 2,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "monthly-trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_monthly",
+                  "fields": [
+                    {
+                      "name": "monthly(booking_month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `booking_month`)"
+                    },
+                    {
+                      "name": "sum(booking_count)",
+                      "expression": "SUM(`booking_count`)"
+                    },
+                    {
+                      "name": "sum(total_revenue)",
+                      "expression": "SUM(`total_revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "combo",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(booking_month)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(booking_count)",
+                        "displayName": "Bookings"
+                      }
+                    ]
+                  },
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "sum(total_revenue)",
+                        "displayName": "Revenue ($)"
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "frame": {
+                "title": "Bookings and revenue by month",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "top-cities-revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_city_revenue",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "sum(total_revenue)",
+                      "expression": "SUM(`total_revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(total_revenue)",
+                      "displayName": "Revenue ($)",
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "decimalPlaces": {
+                          "type": "max",
+                          "places": 0
+                        },
+                        "abbreviation": "compact"
+                      }
+                    }
+                  ]
+                },
+                "y": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Top 10 cities by revenue",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "top-cities-bookings",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_city_bookings",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "sum(booking_count)",
+                      "expression": "SUM(`booking_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(booking_count)",
+                      "displayName": "Bookings"
+                    }
+                  ]
+                },
+                "y": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Top 10 cities by bookings",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 10,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "city-detail",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_city_all",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "total_revenue",
+                      "expression": "`total_revenue`"
+                    },
+                    {
+                      "name": "booking_count",
+                      "expression": "`booking_count`"
+                    },
+                    {
+                      "name": "avg_booking_value",
+                      "expression": "`avg_booking_value`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "city",
+                    "displayName": "City"
+                  },
+                  {
+                    "fieldName": "total_revenue",
+                    "displayName": "Revenue",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 2
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "booking_count",
+                    "displayName": "Bookings"
+                  },
+                  {
+                    "fieldName": "avg_booking_value",
+                    "displayName": "Avg booking value",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              "frame": {
+                "title": "All cities",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 12,
+            "height": 7
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "filters",
+      "displayName": "Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter-month",
+            "queries": [
+              {
+                "name": "ds_month",
+                "query": {
+                  "datasetName": "ds_monthly",
+                  "fields": [
+                    {
+                      "name": "booking_month",
+                      "expression": "`booking_month`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "booking_month",
+                    "queryName": "ds_month"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Booking month"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FCFCFC",
+        "dark": "#1F272D"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "widgetBorderColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "fontColor": {
+        "light": "#11171C",
+        "dark": "#E8ECF0"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#0072B2",
+        "#E69F00",
+        "#009E73",
+        "#CC79A7",
+        "#D55E00"
+      ],
+      "widgetHeaderAlignment": "LEFT"
+    }
+  }
+}

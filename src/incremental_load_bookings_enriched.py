@@ -3,15 +3,13 @@
 First run (or if the target is missing): full load.
 Later runs: MERGE only the bookings changed since the last processed raw.bookings version.
 
-Optional args (used for testing against scratch schemas): <raw_schema> <enr_schema>
+Args: <catalog> <raw_schema> <enr_schema>
 """
 import sys
 
 from pyspark.sql import SparkSession
 
-CATALOG = "claudecatalog"
-raw = sys.argv[1] if len(sys.argv) > 1 else "raw"
-enr = sys.argv[2] if len(sys.argv) > 2 else "enr"
+CATALOG, raw, enr = sys.argv[1:4]
 
 BOOKINGS = f"{CATALOG}.{raw}.bookings"
 PASSENGERS = f"{CATALOG}.{raw}.passengers"
